@@ -7,9 +7,6 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 
-var index = require('./routes/index');
-var users = require('./routes/users');
-var login = require('./routes/login');
 
 var app = express();
 
@@ -21,13 +18,10 @@ app.set('view engine', 'ejs');
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
+app.use(bodyParser());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', index);
-app.use('/users', users);
-app.use('/login', login);
 
 
 var dbHost = process.env.DB_HOST || 'localhost'
@@ -40,14 +34,16 @@ if (app.get('env') == 'live'){
 	dbURL = 'mongodb://'+process.env.DB_USER+':'+process.env.DB_PASS+'@'+dbHost+':'+dbPort+'/'+dbName;
 }
 
-// app.use(session({
-// 	secret: 'faeb4453e5d14fe6f6d04637f78077c76c73d1b4',
-// 	proxy: true,
-// 	resave: true,
-// 	saveUninitialized: true,
-// 	store: new MongoStore({ url: dbURL })
-// 	})
-// );
+app.use(session({
+	secret: 'faeb4453e5d14fe6f6d04637f78077c76c73d1b4',
+	proxy: true,
+	resave: true,
+	saveUninitialized: true,
+	store: new MongoStore({ url: dbURL })
+	})
+);
+
+require('./server/routers')(app);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
