@@ -47,9 +47,9 @@ exports.autoLogin = function(user, pass, callback)
 	});
 }
 
-exports.manualLogin = function(user, pass, callback)
+exports.manualLogin = function(email, pass, callback)
 {
-	accounts.findOne({user:user}, function(e, o) {
+	accounts.findOne({email:email}, function(e, o) {
 		if (o == null){
 			callback('user-not-found');
 		}	else{

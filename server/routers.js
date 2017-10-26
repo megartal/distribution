@@ -25,13 +25,13 @@ module.exports = function(app){
 
 
     app.post('/', function(req, res){
-        AM.manualLogin(req.body['user'], req.body['pass'], function(e, o){
+        AM.manualLogin(req.body['email'], req.body['pass'], function(e, o){
             if (!o){
                 res.status(400).send(e);
             }	else{
-                req.session.user = o;
+                req.session.email = o;
                 if (req.body['remember-me'] == 'true'){
-                    res.cookie('user', o.user, { maxAge: 900000 });
+                    res.cookie('email', o.user, { maxAge: 900000 });
                     res.cookie('pass', o.pass, { maxAge: 900000 });
                 }
                 res.status(200).send(o);
@@ -43,17 +43,16 @@ module.exports = function(app){
     // creating new accounts //
         
     app.get('/register', function(req, res) {
-        res.render('register', {  title: 'register' });
+        res.render('register', {  title: 'register', one:'home', two :'about_us', three :'contact _us', four:'sign_out'});
     });
 
     app.post('/register', function(req, res){
         AM.addNewAccount({
-            name 	: req.body['name'],
+            name 	: req.body['username'],
             email 	: req.body['email'],
-            user 	: req.body['user'],
             phone   : req.body['phone'],
-            pass	: req.body['pass'],
-            addr    : req.body['address']
+            addr    : req.body['address'],
+            pass	: req.body['pass']
         }, function(e){
             if (e){
                 res.status(400).send(e);
@@ -61,6 +60,11 @@ module.exports = function(app){
                 res.status(200).send('ok');
             }
         });
+    });
+
+
+    app.get('/home', function(req, res) {
+        res.render('home', {title : 'home'});
     });
 
 }
