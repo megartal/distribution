@@ -71,6 +71,10 @@ module.exports = function (app) {
         }
     });
 
+    app.get('/test', function (req, res) {
+            res.render('test', { title: 'test' });
+    });
+
     app.get('/items', function (req, res, next) {
         if (req.session.email) {
             AM.getItems(getClientFilter(req.query), function (err, items) {
