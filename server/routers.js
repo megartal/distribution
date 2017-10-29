@@ -62,9 +62,63 @@ module.exports = function(app){
         });
     });
 
-
+    // main page of each account //
     app.get('/home', function(req, res) {
         res.render('home', {title : 'home'});
     });
+    
+    app.get('/clients', function(req, res, next) {
+        AM.getItems(req.query, function(err, items) {
+            res.json(items);
+        });
+    });
+    
+    app.post('/clients', function(req, res, next) {
+        AM.insertItem(prepareItem(req.body), function(err, item) {
+            res.json(item);
+        });
+    });
+    
+    app.put('/clients', function(req, res, next) {
+        var item = prepareItem(req.body);
+    
+        db.update({ _id: item._id }, item, {}, function(err) {
+            res.json(item);
+        });
+    });
+    
+    app.delete('/clients', function(req, res, next) {
+        var item = prepareItem(req.body);
+    
+        db.remove({ _id: item._id }, {}, function(err) {
+            res.json(item);
+        });
+    });
 
+
+    // methods
+    var getClientFilter = function(query) {
+        var result = {
+            // Name: new RegExp(query.Name, "i"),
+            Name : new RegExp(query.Name, "i")
+            // Type: new RegExp(query.Type, "i")
+        };
+    
+        if(query.Available) {
+            result.Available = query.Available === 'true' ? true : false;
+        }
+    
+        if(query.Type && query.Type !== '0') {
+            result.Type = parseInt(query.Type, 10);
+        }
+    
+        return result;
+    };
+    
+    var prepareItem = function(source) {
+        var result = source;
+        result.Married = source.Married === 'true' ? true : false;
+        result.Country = parseInt(source.Country, 10);
+        return result;
+    };
 }
