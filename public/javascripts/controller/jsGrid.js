@@ -1,14 +1,12 @@
 $(function() {
 
-    var countries = [
+    var itemType = [
         { Name: "", Id: 0 },
-        { Name: "United States", Id: 1 },
-        { Name: "Canada", Id: 2 },
-        { Name: "United Kingdom", Id: 3 },
-        { Name: "France", Id: 4 },
-        { Name: "Brazil", Id: 5 },
-        { Name: "China", Id: 6 },
-        { Name: "Russia", Id: 7 }
+        { Name: "Type1", Id: 1 },
+        { Name: "Type2", Id: 2 },
+        { Name: "Type3", Id: 3 },
+        { Name: "Type4", Id: 4 },
+        { Name: "Type5", Id: 5 },
     ];
 
     $("#jsGrid").jsGrid({
@@ -27,38 +25,38 @@ $(function() {
             loadData: function(filter) {
                 return $.ajax({
                     type: "GET",
-                    url: "/clients",
+                    url: "/items",
                     data: filter
                 });
             },
             insertItem: function(item) {
                 return $.ajax({
                     type: "POST",
-                    url: "/clients",
+                    url: "/items",
                     data: item
                 })
             },
             updateItem: function(item) {
                 return $.ajax({
                     type: "PUT",
-                    url: "/clients",
+                    url: "/items",
                     data: item
                 });
             },
             deleteItem: function(item) {
                 return $.ajax({
                     type: "DELETE",
-                    url: "/clients",
+                    url: "/items",
                     data: item
                 });
             }
         },
         fields: [
             { name: "Name", type: "text", width: 150 },
-            { name: "Age", type: "number", width: 50, filtering: false },
-            { name: "Address", type: "text", width: 200 },
-            // { name: "Country", type: "select", items: countries, valueField: "Id", textField: "Name" },
-            // { name: "Married", type: "checkbox", title: "Is Married", sorting: false },
+            { name: "Type", type: "select", items: itemType, valueField: "Id", textField: "Name", filtering: false },
+            { name: "Price", type: "number", width: 50, filtering: false },
+            { name: "Description", type: "text", width: 400 },
+            { name: "Available", type: "checkbox", title: "Is Available", sorting: false },
             { type: "control" }
         ]
     });

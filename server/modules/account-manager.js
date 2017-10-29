@@ -39,15 +39,15 @@ var items = db.collection('items');
 // *** acount manager ************** //
 /* login validation methods */
 
-exports.autoLogin = function (user, pass, callback) {
-	accounts.findOne({ user: user }, function (e, o) {
-		if (o) {
-			o.pass == pass ? callback(o) : callback(null);
-		} else {
-			callback(null);
-		}
-	});
-}
+// exports.autoLogin = function (user, pass, callback) {
+// 	accounts.findOne({ user: user }, function (e, o) {
+// 		if (o) {
+// 			o.pass == pass ? callback(o) : callback(null);
+// 		} else {
+// 			callback(null);
+// 		}
+// 	});
+// }
 
 exports.manualLogin = function (email, pass, callback) {
 	accounts.findOne({ email: email }, function (e, o) {
@@ -202,35 +202,19 @@ var findByMultipleFields = function (a, callback) {
 
 // *** item manager ************** //
 
-exports.getItems = function (query, callback) {
-	var filter = {
-		// Name: new RegExp(query.Name, "i"),
-		Name : new RegExp(query.Name, "i")
-		// Type: new RegExp(query.Type, "i")
-	};
-
-	if(query.Married) {
-		filter.Married = query.Married === 'true' ? true : false;
-	}
-
-	if(query.Country && query.Country !== '0') {
-		filter.Country = parseInt(query.Country, 10);
-	}
+exports.getItems = function (filter, callback) {
 	items.find(filter).toArray(function (err, docs) {
 		if (err) {
 			return callback(err, null);
 		} else {
-			// docs.forEach(function(v){
-			// 	// delete v._id;
-			// 	parseInt(v.Age, 10);
-			// });
 			return callback(null, docs);
 		}
 	})
 };
 
-exports.deleteItem = function () {
-
+exports.deleteItem = function (item, callback) {
+	var result = items.deleteOne(item);
+	callback(null, result);
 };
 
 exports.insertItem = function (item, callback) {
@@ -238,6 +222,6 @@ exports.insertItem = function (item, callback) {
 	callback(null, result);
 };
 
-exports.updateItems = function () {
-
+exports.updateItems = function (item, callback) {
+	var result = items.updateOne({ _id: item._id }, {$set : item} , {});
 };
