@@ -72,7 +72,7 @@ module.exports = function (app) {
     });
 
     app.get('/test', function (req, res) {
-            res.render('test', { title: 'test' });
+            res.render('test2', { title: 'test' });
     });
 
     app.get('/items', function (req, res, next) {
@@ -107,8 +107,8 @@ module.exports = function (app) {
     });
 
     app.delete('/items', function (req, res, next) {
-        if (req.session.email) {
-            AM.deleteItem(prepareItem(req), function (err, item) {
+        if (req.session.email.email) {
+            AM.deleteItem(prepareItem(req, req.session.email.email), function (err, item) {
                 res.json(item);
             });
         } else {
@@ -121,26 +121,15 @@ module.exports = function (app) {
     var getClientFilter = function (query) {
         var result = {
             // Type: new RegExp(query.Type, "i"),
-            Name: new RegExp(query.Name, "i"),
-            Description: new RegExp(query.Description, "i")
+            name: new RegExp(query.name, "i"),
+            type: new RegExp(query.type, "i"),
+            descript: new RegExp(query.descrip, "i")
         };
-
-        if (query.Available) {
-            result.Available = query.Available === 'true' ? true : false;
-        }
-
-        if (query.Type && query.Type !== '0') {
-            result.Type = parseInt(query.Type, 10);
-        }
-
         return result;
     };
 
     var prepareItem = function (req, userID) {
-        var source = req.body;
-        var result = source;
-        result.Available = source.Available === 'true' ? true : false;
-        result.Type = parseInt(source.Type, 10);
+        var result = req.body;
         result.userID = userID;
         return result;
     };
