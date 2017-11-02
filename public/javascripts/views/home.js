@@ -1,19 +1,61 @@
 var am = new AlertManager();
+var results;
+var displayNum = 2;
+
+$(function () {
+    start();
+    $("#txtSearch").change(function(){
+        $(".modal-body").append(
+        '<p> saaaalllaaaam aaa</p>'
+        );
+    })
+});
+
+function start(){
+    $('#pageing').children().remove();
+    getFromDB();
+    getLocally(0, displayNum - 1);
+    pagination(1);
+    //Add, Save, Edit and Delete functions code 
+    $(".btnEdit").bind("click", Edit);
+    $(".btnDelete").bind("click", Delete);
+    $("#btnAdd").bind("click", Add);
+    $("ul.pagination li a").click(function (data) {
+        var a = $(this).text();
+        getLocally(((a - 1) * displayNum), a * displayNum - 1);
+        changeActiveness($(".pagination").children(), a-1);
+    });
+
+
+
+    $('.thumbnail').click(function(){
+        $('.modal-body').empty();
+        var title = $(this).parent('a').attr("title");
+        $('.modal-title').html(title);
+        $($(this).parents('div').html()).appendTo('.modal-body');
+        $('#myModal').modal({show:true});
+  });
+}
 
 function Add() {
     $("#tblData tbody").append(
-        "<tr>" +
-        "<td><input type='text'/></td>" +
-        "<td><input type='text'/></td>" +
-        "<td><input type='number'/></td>" +
-        "<td><input type='text'/></td>" +
-        "<td><input type='number'/></td>" +
-        // "<td><input type='image'/></td>" +
-        "<td><img src='images/disk.png' class='btnSave'><img src='images/delete.png' class='btnDelete'/></td>" +
+        "<tr class='trow'>" +
+        "<td class='col-md-1'><input class='col-md-12' type='text'/></td>" +
+        "<td class='col-md-1'><input class='col-md-12' type='text'/></td>" +
+        "<td class='col-md-1'><input class='col-md-12' type='number'/></td>" +
+        "<td class='col-md-6'><input class='col-md-12' type='text'/></td>" +
+        "<td class='col-md-1'><input class='col-md-12' type='number'/></td>" +
+        "<td class='col-md-1'><a class='btnImage'>unselected</a></td>" +
+        "<td class='col-md-1'><img src='images/disk.png' class='btnSave'><img src='images/delete.png' class='btnDelete'/></td>" +
         "</tr>");
     $(".btnSave").bind("click", Save);
     $(".btnDelete").bind("click", Delete);
+    $(".btnImage").bind("click", getImage);
 };
+
+function getImage(){
+    $('#imageSearchModal').modal('show');
+}
 
 function Save() {
     var par = $(this).parent().parent(); //tr 
@@ -61,15 +103,15 @@ function Edit() {
     var tdPrice = par.children("td:nth-child(3)");
     var tdDescrip = par.children("td:nth-child(4)");
     var tdDiscount = par.children("td:nth-child(5)");
-    // var tdImage = par.children("td:nth-child(6)");
-    var tdButtons = par.children("td:nth-child(6)");
+    var tdImage = par.children("td:nth-child(6)");
+    var tdButtons = par.children("td:nth-child(7)");
 
-    tdName.html("<input type='text' id='txtName' value='" + tdName.html() + "'/>");
-    tdType.html("<input type='text' id='txtType' value='" + tdType.html() + "'/>");
-    tdPrice.html("<input type='number' id='txtPrice' value='" + tdPrice.html() + "'/>");
-    tdDescrip.html("<input type='text' id='txtDescrip' value='" + tdDescrip.html() + "'/>");
-    tdDiscount.html("<input type='number' id='txtDiscount' value='" + tdDiscount.html() + "'/>");
-    // tdImage.html("<input type='image' id='txtImage' value='" + tdImage.html() + "'/>");
+    tdName.html("<input class='form-control' type='text' id='txtName' value='" + tdName.html() + "'/>");
+    tdType.html("<input class='form-control' type='text' id='txtType' value='" + tdType.html() + "'/>");
+    tdPrice.html("<input class='form-control' type='number' id='txtPrice' value='" + tdPrice.html() + "'/>");
+    tdDescrip.html("<input class='form-control' type='text' id='txtDescrip' value='" + tdDescrip.html() + "'/>");
+    tdImage.html("<input class='form-control' type='image' id='txtImage' value='" + tdImage.html() + "'/>");
+    tdDiscount.html("<input class='form-control' type='number' id='txtDiscount' value='" + tdDiscount.html() + "'/>");
     tdButtons.html("<img src='images/disk.png' class='btnSave'/>");
 
     $(".btnSave").bind("click", Save);
@@ -93,51 +135,67 @@ function Delete() {
     par.remove();
 };
 
-$(function () {
-    get();
-    //Add, Save, Edit and Delete functions code 
-    $(".btnEdit").bind("click", Edit);
-    $(".btnDelete").bind("click", Delete);
-    $("#btnAdd").bind("click", Add);
-    $('.datatable').dataTable({
-        "sPaginationType": "bs_four_button"
-    });	
-    $('.datatable').each(function(){
-        var datatable = $(this);
-        // SEARCH - Add the placeholder for Search and Turn this into in-line form control
-        var search_input = datatable.closest('.dataTables_wrapper').find('div[id$=_filter] input');
-        search_input.attr('placeholder', 'Search');
-        search_input.addClass('form-control input-sm');
-        // LENGTH - Inline-Form control
-        var length_sel = datatable.closest('.dataTables_wrapper').find('div[id$=_length] select');
-        length_sel.addClass('form-control input-sm');
-    });
-});
-
-
-function get() {
-    $(".trow").remove();
+function getFromDB() {
     var namef = $("#namef").val();
     var typef = $("#typef").val();
     var descripf = $("descripf").val();
     $.ajax({
-        url: "/items", type: "GET", data: { name: namef, type: typef, descript: descripf }, success: function (results) {
-            if (results != undefined && results != null) {
-                results.forEach(function (element) {
-                    $("#tblData tbody").append(
-                        "<tr class='trow'>" +
-                        "<td>" + element.name + "</td>" +
-                        "<td>" + element.type + "</td>" +
-                        "<td>" + element.price + "</td>" +
-                        "<td>" + element.descript + "</td>" +
-                        "<td>" + element.discount + "</td>" +
-                        // "<td><input type='image'/></td>" +
-                        "<td><img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/></td>" +
-                        "</tr>");
-                    $(".btnDelete").bind("click", Delete);
-                    $(".btnEdit").bind("click", Edit);
-                });
-            }
+        url: "/items", type: "GET", 'async': false, data: { name: namef, type: typef, descript: descripf }, success: function (data) {
+            results = data;
         }
     });
+}
+
+function getLocally(start, end) {
+    $(".trow").remove();
+    if (results != undefined && results != null) {
+        for (var i = start; i <= Math.min(end, results.length-1); i++) {
+            element = results[i];
+            $("#tblData tbody").append(
+                "<tr class='trow'>" +
+                "<td>" + element.name + "</td>" +
+                "<td>" + element.type + "</td>" +
+                "<td>" + element.price + "</td>" +
+                "<td>" + element.descript + "</td>" +
+                "<td>" + element.discount + "</td>" +
+                "<td><input type='image'/>" + element.image + "</td>" +
+                "<td><img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/></td>" +
+                "</tr>");
+            $(".btnDelete").bind("click", Delete);
+            $(".btnEdit").bind("click", Edit);
+        }
+    }
+}
+
+function pagination(active) {
+    resultsLength = results.length;
+    var str = "<nav aria-label='Page navigation'>" + "<ul class='pagination'>";
+    if (resultsLength > 2) {
+        // if (resultsLength > 5 * displayNum) {
+        //     str = str.concat("<li id='pre' aria-label='Previous'></li>");
+        // }
+        var until = Math.ceil(resultsLength / displayNum);
+        for (var j = 1; j < until + 1; j++) {
+            if (active == j) {
+                str = str.concat("<li class='active'><a>" + j + "</a></li>");
+            } else {
+                str = str.concat("<li><a>" + j + "</a></li>");
+            }
+        }
+        // if (resultsLength > 5 * displayNum) {
+        //     str = str.concat("<li id='pre' aria-label='Next'><a></a></li>");
+        // }
+        str = str.concat("</ul></nav>");
+        $('#pageing').append(str);
+    }
+}
+
+function changeActiveness(items, active){
+    for (var j = 0; j < items.length; j++) {
+        if (active == j) {
+            items[j].classList.add("active");
+        } else {
+            items[j].classList.remove("active");
+        }
+    }
 }
