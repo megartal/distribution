@@ -34,6 +34,7 @@ db.open(function (e, d) {
 
 var accounts = db.collection('accounts');
 var items = db.collection('items');
+var images = db.collection('imagesURL');
 
 
 // *** acount manager ************** //
@@ -204,6 +205,16 @@ var findByMultipleFields = function (a, callback) {
 
 exports.getItems = function (filter, callback) {
 	items.find(filter).toArray(function (err, docs) {
+		if (err) {
+			return callback(err, null);
+		} else {
+			return callback(null, docs);
+		}
+	})
+};
+
+exports.getImages = function (callback) {
+	images.find().toArray(function (err, docs) {
 		if (err) {
 			return callback(err, null);
 		} else {

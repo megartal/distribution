@@ -72,13 +72,24 @@ module.exports = function (app) {
     });
 
     app.get('/test', function (req, res) {
-            res.render('test2', { title: 'test' });
+        res.render('test2', { title: 'test' });
     });
 
     app.get('/items', function (req, res, next) {
         if (req.session.email) {
             AM.getItems(getClientFilter(req.query), function (err, items) {
                 res.json(items);
+            });
+        } else {
+            res.redirect('/');
+        }
+    });
+
+
+    app.get('/images', function (req, res, next) {
+        if (req.session.email) {
+            AM.getImages(function (err, images) {
+                res.json(images);
             });
         } else {
             res.redirect('/');
