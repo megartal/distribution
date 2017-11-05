@@ -1,6 +1,6 @@
 var am = new AlertManager();
 var results;
-var displayNum = 2;
+var displayNum = 5;
 var idRecord;
 
 $(function () {
@@ -22,7 +22,7 @@ function start() {
         changeActiveness($(".pagination").children(), a - 1);
     });
 
-    $("tbody tr td a").click(function () {
+    $("tbody").on('click', ".selectImage", function () {
         $("#txtSearch").val('');
         idRecord = $(this).attr('name');
         $("#images").children().remove();
@@ -49,10 +49,12 @@ function start() {
             data: { id: idRecord, image: imageId },
             success: function (data) {
                 $("#imageModal").modal('toggle');
+                location.reload();
             }
         });
     });
 }
+
 function getImage(_url) {
     $("#images").children().remove();
     $.ajax({
@@ -146,6 +148,7 @@ function save() {
         tdButtons.html("<img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/>");
         $(".btnEdit").bind("click", Edit);
         $(".btnDelete").bind("click", Delete);
+        location.reload()
     }
 };
 
@@ -212,7 +215,7 @@ function getLocally(start, end) {
                 "<td>" + element.price + "</td>" +
                 "<td>" + element.descript + "</td>" +
                 "<td>" + element.discount + "</td>" +
-                "<td><a name='" + element._id + "'>" + element.image + "</a></td>" +
+                "<td><a class='selectImage' name='" + element._id + "'>" + element.image + "</a></td>" +
                 "<td><img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/></td>" +
                 "</tr>");
             $(".btnDelete").bind("click", Delete);
