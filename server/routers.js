@@ -1,4 +1,5 @@
 var AM = require('./../server/modules/account-manager');
+var ObjectId = require('mongodb').ObjectID;
 
 
 module.exports = function (app) {
@@ -87,8 +88,13 @@ module.exports = function (app) {
 
 
     app.get('/images', function (req, res, next) {
+        var filter = {};
+        if(req.query.url){
+            filter.url = req.query.url;
+        }
+        filter.name = new RegExp(req.query.name, "i");
         if (req.session.email) {
-            AM.getImages(function (err, images) {
+            AM.getImages(filter, function (err, images) {
                 res.json(images);
             });
         } else {
@@ -96,17 +102,17 @@ module.exports = function (app) {
         }
     });
 
-    app.post('/items', function (req, res, next) {
-        if (req.session.email) {
-            AM.insertItem(prepareItem(req, req.session.email.email), function (err, item) {
-                res.json(item);
-            });
-        } else {
-            res.redirect('/');
-        }
-    });
+    // app.post('/items', function (req, res, next) {
+    //     if (req.session.email) {
+    //         AM.insertItem(prepareItem(req, req.session.email.email), function (err, item) {
+    //             res.json(item);
+    //         });
+    //     } else {
+    //         res.redirect('/');
+    //     }
+    // });
 
-    app.put('/items', function (req, res, next) {
+    app.post('/items', function (req, res, next) {
         if (req.session.email) {
             var item = prepareItem(req, req.session.email.email);
             AM.updateItems(item, function (result) {
@@ -130,13 +136,18 @@ module.exports = function (app) {
 
     // methods
     var getClientFilter = function (query) {
-        var result = {
-            // Type: new RegExp(query.Type, "i"),
-            name: new RegExp(query.name, "i"),
-            type: new RegExp(query.type, "i"),
-            descript: new RegExp(query.descrip, "i")
-        };
-        return result;
+        if (query._id) {
+            return result = {
+                _id: new ObjectId(query._id)
+            }
+        } else {
+            return result = {
+                // Type: new RegExp(query.Type, "i"),
+                name: new RegExp(query.name, "i"),
+                type: new RegExp(query.type, "i"),
+                descript: new RegExp(query.descrip, "i")
+            };
+        }
     };
 
     var prepareItem = function (req, userID) {

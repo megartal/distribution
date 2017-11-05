@@ -3,6 +3,7 @@ var crypto = require('crypto');
 var MongoDB = require('mongodb').Db;
 var Server = require('mongodb').Server;
 var moment = require('moment');
+var ObjectId = require('mongodb').ObjectID;
 
 /*
 	ESTABLISH DATABASE CONNECTION
@@ -213,8 +214,8 @@ exports.getItems = function (filter, callback) {
 	})
 };
 
-exports.getImages = function (callback) {
-	images.find().toArray(function (err, docs) {
+exports.getImages = function (filter, callback) {
+	images.find(filter).toArray(function (err, docs) {
 		if (err) {
 			return callback(err, null);
 		} else {
@@ -228,11 +229,20 @@ exports.deleteItem = function (item, callback) {
 	callback(null, result);
 };
 
-exports.insertItem = function (item, callback) {
-	var result = items.insertOne(item);
-	callback(null, result);
-};
+// exports.insertItem = function (item, callback) {
+// 	var result = items.insertOne(item);
+// 	callback(null, result);
+// };
 
 exports.updateItems = function (item, callback) {
-	var result = items.updateOne({ _id: item._id }, {$set : item} , {});
+	if (item.id == null || item.id == undefined){
+		var result = items.updateOne({name: item.name }, { $set: item }, { upsert: true }, function (err, result) {
+			callback(result);
+		});
+	} else {
+		var result = items.updateOne({ _id: new ObjectId(item.id)}, { $set: item }, {}, function (err, result) {
+			callback(result);
+		});
+	}
+
 };

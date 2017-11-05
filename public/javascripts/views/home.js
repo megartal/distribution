@@ -1,6 +1,7 @@
 var am = new AlertManager();
 var results;
 var displayNum = 2;
+var idRecord;
 
 $(function () {
     start();
@@ -20,6 +21,79 @@ function start() {
         getLocally(((a - 1) * displayNum), a * displayNum - 1);
         changeActiveness($(".pagination").children(), a - 1);
     });
+
+    $("tbody tr td a").click(function () {
+        $("#txtSearch").val('');
+        idRecord = $(this).attr('name');
+        $("#images").children().remove();
+        getImageURL(function (url) {
+            if (url == null || url == undefined || url === "unselected") {
+                getRelatedImages("");
+            } else {
+                getImage(url);
+            }
+        });
+    });
+
+    $("#txtSearch").change(function () {
+        $("#images").children().remove();
+        var txtSearch = $(this).val();
+        getRelatedImages(txtSearch);
+    })
+
+    $('#images').on('click', 'img', function () {
+        var imageId = $(this).attr('src');
+        $.ajax({
+            url: "/items",
+            type: "POST",
+            data: { id: idRecord, image: imageId },
+            success: function (data) {
+                $("#imageModal").modal('toggle');
+            }
+        });
+    });
+}
+function getImage(_url) {
+    $("#images").children().remove();
+    $.ajax({
+        url: "/images",
+        type: "GET",
+        data: { url: _url },
+        success: function (data) {
+            for (var i = 0; i < data.length; i++) {
+                var someimage = $("<img src='" + data[i].url + "' class='col-md-3 thumbnail alignleft alignright' height='100' width='50'/>") //make the image element however with whatever data you get
+                $("#images").append(someimage);
+            }
+        }
+    });
+    $("#imageModal").modal();
+}
+
+function getImageURL(callback) {
+    $.ajax({
+        url: "/items",
+        type: "GET",
+        data: { _id: idRecord },
+        success: function (data) {
+            callback(data[0].image);
+        }
+    });
+}
+
+function getRelatedImages(regex) {
+    $("#images").children().remove();
+    $.ajax({
+        url: "/images",
+        type: "GET",
+        data: { name: regex },
+        success: function (data) {
+            for (var i = 0; i < data.length; i++) {
+                var someimage = $("<img src='" + data[i].url + "' class='col-md-3 thumbnail alignleft alignright' height='100' width='50'/>") //make the image element however with whatever data you get
+                $("#images").append(someimage);
+            }
+        }
+    });
+    $("#imageModal").modal();
 }
 
 function Add() {
@@ -33,12 +107,11 @@ function Add() {
         "<td class='col-md-1'><a class='btnImage'>unselected</a></td>" +
         "<td class='col-md-1'><img src='images/disk.png' class='btnSave'><img src='images/delete.png' class='btnDelete'/></td>" +
         "</tr>");
-    $(".btnSave").bind("click", Save);
+    $(".btnSave").bind("click", save);
     $(".btnDelete").bind("click", Delete);
 };
 
-
-function Save() {
+function save() {
     var par = $(this).parent().parent(); //tr 
     var tdName = par.children("td:nth-child(1)");
     var tdType = par.children("td:nth-child(2)");
@@ -61,58 +134,20 @@ function Save() {
             url: "/items", type: "POST",
             data: { name: nameVal, type: typeVal, price: priceVal, descript: descripVal, discount: discountVal, image: "unselected" },
             success: function (result, status) {
-                tdName.html(nameVal);
-                tdType.html(typeVal);
-                tdPrice.html(priceVal);
-                tdDescrip.html(descripVal);
-                tdDiscount.html(discountVal);
-                tdImage.html(imageVal);
-                tdButtons.html("<img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/>");
+                console.log('helooooo'); /// ????
             }
         });
+        tdName.html(nameVal);
+        tdType.html(typeVal);
+        tdPrice.html(priceVal);
+        tdDescrip.html(descripVal);
+        tdDiscount.html(discountVal);
+        tdImage.html(imageVal);
+        tdButtons.html("<img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/>");
         $(".btnEdit").bind("click", Edit);
         $(".btnDelete").bind("click", Delete);
     }
 };
-
-function update() {
-    var par = $(this).parent().parent(); //tr 
-    var tdName = par.children("td:nth-child(1)");
-    var tdType = par.children("td:nth-child(2)");
-    var tdPrice = par.children("td:nth-child(3)");
-    var tdDescrip = par.children("td:nth-child(4)");
-    var tdDiscount = par.children("td:nth-child(5)");
-    var tdImage = par.children("td:nth-child(6)");
-    var tdButtons = par.children("td:nth-child(7)");
-
-    var nameVal = tdName.children("input[type=text]").val();
-    var typeVal = tdType.children("input[type=text]").val();
-    var priceVal = tdPrice.children("input[type=number]").val();
-    var descripVal = tdDescrip.children("input[type=text]").val();
-    var discountVal = tdDiscount.children("input[type=number]").val();
-    var imageVal = tdImage.children("input[type=text]").val();
-    if (nameVal == '' || priceVal == '') {
-        am.showAlert('Data is incomplete!', 'Please enter at least name and price.', 'Close');
-    } else {
-        $.ajax({
-            url: "/items", type: "PUT",
-            data: { name: nameVal, type: typeVal, price: priceVal, descript: descripVal, discount: discountVal, image: "unselected" },
-            success: function (result, status) {
-                tdName.html(nameVal);
-                tdType.html(typeVal);
-                tdPrice.html(priceVal);
-                tdDescrip.html(descripVal);
-                tdDiscount.html(discountVal);
-                tdImage.html(imageVal);
-                tdButtons.html("<img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/>");
-            }
-        });
-        $(".btnEdit").bind("click", Edit);
-        $(".btnDelete").bind("click", Delete);
-    }
-};
-
-
 
 function Edit() {
     var par = $(this).parent().parent(); //tr 
@@ -132,26 +167,7 @@ function Edit() {
     tdDiscount.html("<input class='form-control' type='number' id='txtDiscount' value='" + tdDiscount.html() + "'/>");
     tdButtons.html("<img src='images/disk.png' class='btnSave'/>");
 
-    $(".getImage").click(function () {
-        $("#images").children.remove()
-        var txtSearch = $("#txtSearch").html();
-        $.ajax({
-            url: "/images",
-            type: "GET",
-            data: { name: txtSearch },
-            success: function (data) {
-                for (var i = 0; i < data.length; i++) {
-                    var someimage = $("<img src='" + data[i].url + "' class='col-md-3 thumbnail alignleft alignright' height='100' width='50'/>") //make the image element however with whatever data you get
-                    $("#images").append(someimage);
-                    // someimage.click(function () { $("#container").append($(this)); });
-                }
-            }
-        });
-        // $("#modal-body").append("<img src='images/2.jpg' class='thumbnail' height='100' width='100'/>");
-        $("#imageModal").modal();
-    });
-
-    $(".btnSave").bind("click", update);
+    $(".btnSave").bind("click", save);
 };
 
 function Delete() {
@@ -162,10 +178,10 @@ function Delete() {
     var priceVal = par.children("td:nth-child(3)").text();
     var descripVal = par.children("td:nth-child(4)").text();
     var discountVal = par.children("td:nth-child(5)").text();
-    // var tdImage = par.children("td:nth-child(6)"); 
+    var tdImage = par.children("td:nth-child(6)").text();
     $.ajax({
         url: "/items", type: "DELETE",
-        data: { name: nameVal, type: typeVal, price: priceVal, descript: descripVal, discount: discountVal, image: "" }
+        data: { name: nameVal, type: typeVal, price: priceVal, descript: descripVal, discount: discountVal, image: tdImage }
     });
     par.remove();
 };
@@ -186,6 +202,9 @@ function getLocally(start, end) {
     if (results != undefined && results != null) {
         for (var i = start; i <= Math.min(end, results.length - 1); i++) {
             element = results[i];
+            if (element.image !== "unselected") {
+                element.image = "selected";
+            }
             $("#tblData tbody").append(
                 "<tr class='trow'>" +
                 "<td>" + element.name + "</td>" +
@@ -193,7 +212,7 @@ function getLocally(start, end) {
                 "<td>" + element.price + "</td>" +
                 "<td>" + element.descript + "</td>" +
                 "<td>" + element.discount + "</td>" +
-                "<td>" + element.image + "</td>" +
+                "<td><a name='" + element._id + "'>" + element.image + "</a></td>" +
                 "<td><img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/></td>" +
                 "</tr>");
             $(".btnDelete").bind("click", Delete);
