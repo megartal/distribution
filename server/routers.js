@@ -72,30 +72,10 @@ module.exports = function (app) {
         }
     });
 
-    app.get('/test', function (req, res) {
-        res.render('test2', { title: 'test' });
-    });
-
     app.get('/items', function (req, res, next) {
         if (req.session.email) {
-            AM.getItems(getClientFilter(req.query), function (err, items) {
+            AM.getItems(getClientFilter(req.query, req.session.email.email), function (err, items) {
                 res.json(items);
-            });
-        } else {
-            res.redirect('/');
-        }
-    });
-
-
-    app.get('/images', function (req, res, next) {
-        var filter = {};
-        if(req.query.url){
-            filter.url = req.query.url;
-        }
-        filter.name = new RegExp(req.query.name, "i");
-        if (req.session.email) {
-            AM.getImages(filter, function (err, images) {
-                res.json(images);
             });
         } else {
             res.redirect('/');
@@ -135,7 +115,7 @@ module.exports = function (app) {
 
 
     // methods
-    var getClientFilter = function (query) {
+    var getClientFilter = function (query, email) {
         if (query._id) {
             return result = {
                 _id: new ObjectId(query._id)
@@ -145,7 +125,8 @@ module.exports = function (app) {
                 // Type: new RegExp(query.Type, "i"),
                 name: new RegExp(query.name, "i"),
                 type: new RegExp(query.type, "i"),
-                descript: new RegExp(query.descrip, "i")
+                descript: new RegExp(query.descrip, "i"),
+                userID: email
             };
         }
     };
@@ -155,4 +136,20 @@ module.exports = function (app) {
         result.userID = userID;
         return result;
     };
+
+    // images
+    app.get('/images', function (req, res, next) {
+        var filter = {};
+        if(req.query.url){
+            filter.url = req.query.url;
+        }
+        filter.name = new RegExp(req.query.name, "i");
+        if (req.session.email) {
+            AM.getImages(filter, function (err, images) {
+                res.json(images);
+            });
+        } else {
+            res.redirect('/');
+        }
+    });
 }

@@ -1,6 +1,6 @@
 var am = new AlertManager();
 var results;
-var displayNum = 5;
+var displayNum = 1;
 var idRecord;
 
 $(function () {
@@ -106,7 +106,7 @@ function Add() {
         "<td class='col-md-1'><input class='col-md-12' type='number'/></td>" +
         "<td class='col-md-6'><input class='col-md-12' type='text'/></td>" +
         "<td class='col-md-1'><input class='col-md-12' type='number'/></td>" +
-        "<td class='col-md-1'><a class='btnImage'>unselected</a></td>" +
+        "<td class='col-md-1'><a'>unselected</a></td>" +
         "<td class='col-md-1'><img src='images/disk.png' class='btnSave'><img src='images/delete.png' class='btnDelete'/></td>" +
         "</tr>");
     $(".btnSave").bind("click", save);
@@ -128,15 +128,17 @@ function save() {
     var priceVal = tdPrice.children("input[type=number]").val();
     var descripVal = tdDescrip.children("input[type=text]").val();
     var discountVal = tdDiscount.children("input[type=number]").val();
-    var imageVal = tdImage.children("input[type=text]").val();
+    var DataId = tdImage.children("a").attr("name");
     if (nameVal == '' || priceVal == '') {
         am.showAlert('Data is incomplete!', 'Please enter at least name and price.', 'Close');
     } else {
         $.ajax({
             url: "/items", type: "POST",
-            data: { name: nameVal, type: typeVal, price: priceVal, descript: descripVal, discount: discountVal, image: "unselected" },
-            success: function (result, status) {
-                console.log('helooooo'); /// ????
+            data: { id: DataId, name: nameVal, type: typeVal, price: priceVal, descript: descripVal, discount: discountVal, image: "unselected" },
+            success: function (result) {
+                if (result.result.ok == 1 && result.result.nModified == 1) {
+                    am.showAlert("heloooo");
+                }
             }
         });
         tdName.html(nameVal);
@@ -144,7 +146,6 @@ function save() {
         tdPrice.html(priceVal);
         tdDescrip.html(descripVal);
         tdDiscount.html(discountVal);
-        tdImage.html(imageVal);
         tdButtons.html("<img src='images/delete.png' class='btnDelete'/><img src='images/pencil.png' class='btnEdit'/>");
         $(".btnEdit").bind("click", Edit);
         $(".btnDelete").bind("click", Delete);
@@ -166,7 +167,6 @@ function Edit() {
     tdType.html("<input class='form-control' type='text' id='txtType' value='" + tdType.html() + "'/>");
     tdPrice.html("<input class='form-control' type='number' id='txtPrice' value='" + tdPrice.html() + "'/>");
     tdDescrip.html("<input class='form-control' type='text' id='txtDescrip' value='" + tdDescrip.html() + "'/>");
-    tdImage.html("<a class='getImage'>" + tdImage.html() + "</a>");
     tdDiscount.html("<input class='form-control' type='number' id='txtDiscount' value='" + tdDiscount.html() + "'/>");
     tdButtons.html("<img src='images/disk.png' class='btnSave'/>");
 
@@ -187,6 +187,7 @@ function Delete() {
         data: { name: nameVal, type: typeVal, price: priceVal, descript: descripVal, discount: discountVal, image: tdImage }
     });
     par.remove();
+    location.reload();
 };
 
 function getFromDB() {
@@ -200,9 +201,18 @@ function getFromDB() {
     });
 }
 
+function compare(a, b) {
+    if (a.name < b.name)
+        return -1;
+    if (a.name > b.name)
+        return 1;
+    return 0;
+}
+
 function getLocally(start, end) {
     $(".trow").remove();
     if (results != undefined && results != null) {
+        results.sort(compare);
         for (var i = start; i <= Math.min(end, results.length - 1); i++) {
             element = results[i];
             if (element.image !== "unselected") {

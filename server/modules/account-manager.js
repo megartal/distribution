@@ -70,7 +70,7 @@ exports.manualLogin = function (email, pass, callback) {
 /* record insertion, update & deletion methods */
 
 exports.addNewAccount = function (newData, callback) {
-	accounts.findOne({ user: newData.user }, function (e, o) {
+	accounts.findOne({ name: newData.name }, function (e, o) {
 		if (o) {
 			callback('username-taken');
 		} else {
@@ -225,6 +225,7 @@ exports.getImages = function (filter, callback) {
 };
 
 exports.deleteItem = function (item, callback) {
+	item.image = new RegExp("", "i");
 	var result = items.deleteOne(item);
 	callback(null, result);
 };
@@ -236,7 +237,7 @@ exports.deleteItem = function (item, callback) {
 
 exports.updateItems = function (item, callback) {
 	if (item.id == null || item.id == undefined){
-		var result = items.updateOne({name: item.name }, { $set: item }, { upsert: true }, function (err, result) {
+		var result = items.updateOne({name: item.name, userID: item.userID }, { $set: item }, { upsert: true }, function (err, result) {
 			callback(result);
 		});
 	} else {
